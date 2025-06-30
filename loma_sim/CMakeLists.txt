@@ -24,6 +24,7 @@ endif()
 # Declare the shared library
 add_library(${PROJECT_NAME}
   SHARED
+    src/robot.cpp
     src/raisim_environment.cpp
 )
 # Specify the include directories
@@ -59,6 +60,20 @@ install(EXPORT export_${PROJECT_NAME}
   DESTINATION share/${PROJECT_NAME}/cmake
 )
 
+add_executable(b2z1_standing 
+  demos/b2z1_standing.cpp
+)
+target_include_directories(b2z1_standing
+  PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+set_target_properties(b2z1_standing
+  PROPERTIES COMPILE_DEFINITIONS ROOT_PATH="${ROOT_PATH}"
+)
+target_link_libraries(b2z1_standing 
+  PUBLIC
+    ${PROJECT_NAME}
+)
 
 # Export for ament
 ament_export_include_directories(include)

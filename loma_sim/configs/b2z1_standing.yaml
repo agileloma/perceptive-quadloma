@@ -1,0 +1,31 @@
+################################################################################
+# Simulation configurations
+################################################################################
+world:
+  time_step: 0.002
+  gravity: 9.81 # Earth: 9.81, Mars: 3.71, Moon: 1.62
+
+b2z1:
+  urdf_path: "/b2z1_description/urdf/b2z1-rai.urdf"
+  fixed_base: False
+  base_name: "base_link"
+  imu_name: "imu_link"
+  arm_endeff_names: ["gripperMover"]
+  leg_endeff_names: ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
+  joint_order: [
+    "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
+    "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+    "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
+    "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint",
+    "joint1", "joint2", "joint3","joint4","joint5","joint6","jointGripper",
+  ]
+  nominal_base_position: [0., 0., 0.45]
+  nominal_base_orientation: [1., 0., 0., 0.]  # [w,x,y,z]
+  nominal_joint_configuration: [
+    0.0, 0.67, -1.3,
+    0.0, 0.67, -1.3,
+    0.0, 0.67, -1.3,
+    0.0, 0.67, -1.3,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  ]
+  
