@@ -58,6 +58,7 @@ void RaisimEnvironment::InitializeServer() {
     server_ = std::make_unique<raisim::RaisimServer>(world_.get());
     server_->launchServer(8080);
     // Focus on the first robot's object if available
+    server_->focusOn(robots_[0]->GetArticulatedSystem());
     tracking_camera_ = false;
     free_camera_ = false;
 }
@@ -83,6 +84,11 @@ void RaisimEnvironment::AddRobot(const YAML::Node& robot_node,
 
     robots_.emplace_back(std::make_unique<Robot>(
         articulated_system, robot_node, robot_id, x_init, y_init));
+}
+
+void RaisimEnvironment::Step(bool update_states, bool sleep)
+{
+    world_->integrate();
 }
 
 }  // namespace loma_sim

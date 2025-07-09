@@ -32,6 +32,10 @@ public:
           int robot_id, 
           double x_init, double y_init);
 
+    raisim::ArticulatedSystem* GetArticulatedSystem() const { 
+        return articulated_system_;
+    };
+
 private:
     raisim::ArticulatedSystem* articulated_system_{nullptr};
     int robot_id_;
@@ -55,6 +59,15 @@ private:
     Eigen::VectorXd gf_;
     Eigen::VectorXd gc_init_;
     Eigen::VectorXd gv_init_;
+
+    Eigen::Vector3d base_lin_vel_prev_;
+    Eigen::Vector3d base_ang_vel_prev_;
+    Eigen::Vector3d base_lin_acc_;
+    Eigen::Vector3d base_ang_acc_;
+
+    Eigen::Matrix3d base_rotation_;
+    Eigen::Vector3d base_lin_vel_;
+    Eigen::Vector3d base_ang_vel_;
 };
 
 }  // namespace loma_sim

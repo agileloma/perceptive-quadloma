@@ -61,12 +61,14 @@ int main(int argc, char *argv[])
     env.AddRobot(robot_node, ROOT_PATH, 0.0, 0.0);
     env.InitializeServer();
 
+    
+
 
     signal(SIGINT, handleSigint);
 
     while (!sigint)
     {
-
+        env.Step(true, false);
         sleep(0.002);
     }
 

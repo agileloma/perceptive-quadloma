@@ -42,6 +42,8 @@ public:
                   const std::string& root_path,
                   double x_init = 0., double y_init = 0.);
 
+    void Step(bool update_states = true, bool sleep = true);
+
 private:
     // raisim world object
     std::unique_ptr<raisim::World> world_;
@@ -49,7 +51,7 @@ private:
     // raisim server for visualization
     std::unique_ptr<raisim::RaisimServer> server_;
 
-    /// List of robot objects
+    // List of robot objects
     std::vector<std::unique_ptr<Robot>> robots_;  
 
     // Pointer to current height map

@@ -79,5 +79,4 @@ Robot::Robot(raisim::ArticulatedSystem* articulated_system,
     gc_init_[1] = y_init;
 }
 
-
 }  // namespace loma_sim
