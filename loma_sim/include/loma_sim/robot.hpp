@@ -22,24 +22,46 @@
 
 #include <commutils/yaml/yaml_cpp_fwd.hpp>
 
+
 namespace loma_sim {
 
 class Robot
 {
 public:
-    Robot(raisim::ArticulatedSystem* articulated_system, 
+    Robot(raisim::World* world,
           const YAML::Node& robot_node,
-          int robot_id, 
-          double x_init, double y_init);
+          const std::string& root_path,
+          double x_init = 0., double y_init = 0.);
 
-    raisim::ArticulatedSystem* GetArticulatedSystem() const { 
+    // Reset and update robot states
+    void updateStates();
+
+
+    raisim::ArticulatedSystem* getArticulatedSystem() const { 
         return articulated_system_;
     };
 
+    void setJointEfforts(const Eigen::VectorXd& efforts);
+
+    Eigen::VectorXd getJointPositions() const;
+    Eigen::VectorXd getJointVelocities() const;
+    Eigen::VectorXd getJointEfforts() const;
+
+    Eigen::Vector3d getBasePosition() const;
+    Eigen::Matrix3d getBaseRotation() const;
+    Eigen::Vector4d getBaseQuaternion() const;
+    Eigen::Vector3d getBaseEulerXYZ() const;
+    Eigen::Vector3d getBaseLinearVelocity() const;
+    Eigen::Vector3d getBaseAngularVelocity() const;
+
 private:
+    // Object and its id
     raisim::ArticulatedSystem* articulated_system_{nullptr};
     int robot_id_;
 
+    std::string urdf_path_;
+
+    // Robot properties
     bool fixed_base_;
     std::string base_name_;
     std::string imu_name_;
@@ -50,6 +72,7 @@ private:
     std::vector<int> arm_endeff_index_;
     std::vector<int> leg_endeff_index_;
 
+    // Generalized states
     int gc_dim_;
     int gv_dim_;
     int num_joints_;
@@ -59,15 +82,6 @@ private:
     Eigen::VectorXd gf_;
     Eigen::VectorXd gc_init_;
     Eigen::VectorXd gv_init_;
-
-    Eigen::Vector3d base_lin_vel_prev_;
-    Eigen::Vector3d base_ang_vel_prev_;
-    Eigen::Vector3d base_lin_acc_;
-    Eigen::Vector3d base_ang_acc_;
-
-    Eigen::Matrix3d base_rotation_;
-    Eigen::Vector3d base_lin_vel_;
-    Eigen::Vector3d base_ang_vel_;
 };
 
 }  // namespace loma_sim

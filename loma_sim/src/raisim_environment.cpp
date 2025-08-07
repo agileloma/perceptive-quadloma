@@ -51,42 +51,34 @@ RaisimEnvironment::RaisimEnvironment(const YAML::Node& world_node)
     height_map_->setAppearance("soil1");
 }
 
-void RaisimEnvironment::InitializeServer() {
+void RaisimEnvironment::initializeServer() {
     if (robots_.empty()) {
         throw std::runtime_error("No robot added. Please call AddRobot() first.");
     }
     server_ = std::make_unique<raisim::RaisimServer>(world_.get());
     server_->launchServer(8080);
     // Focus on the first robot's object if available
-    server_->focusOn(robots_[0]->GetArticulatedSystem());
+    server_->focusOn(robots_[0]->getArticulatedSystem());
     tracking_camera_ = false;
     free_camera_ = false;
 }
 
-void RaisimEnvironment::AddRobot(const YAML::Node& robot_node, 
-                                 const std::string& root_path,
-                                 double x_init, double y_init) 
+int RaisimEnvironment::addRobot(std::shared_ptr<Robot> robot)
 {
-    std::string urdf_path;
-    try {
-        YAML::readParameter(robot_node, "urdf_path", urdf_path);
-    }
-    catch (std::runtime_error& e) {
-        std::cout << "[loma_sim/RaisimWrapper::AddRobot]: " 
-                  << "Error reading parameter [" << e.what() << "]" 
-                  << std::endl;
-    }
-
-    auto articulated_system = world_->addArticulatedSystem(
-        root_path + urdf_path);
-
-    int robot_id = static_cast<int>(robots_.size());
-
-    robots_.emplace_back(std::make_unique<Robot>(
-        articulated_system, robot_node, robot_id, x_init, y_init));
+    robots_.push_back(robot);
+    int robot_id = static_cast<int>(robots_.size()) - 1;
+    return robot_id;
 }
 
-void RaisimEnvironment::Step(bool update_states, bool sleep)
+
+void RaisimEnvironment::updateStates()
+{
+    for (auto& robot : robots_) {
+        robot->updateStates();
+    }
+}
+
+void RaisimEnvironment::step()
 {
     world_->integrate();
 }

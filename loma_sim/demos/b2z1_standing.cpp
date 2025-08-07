@@ -37,9 +37,6 @@ void handleSigint(int )
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Press Enter to continue..." << std::endl;
-    std::cin.ignore();
-
     // Load configuration file
     std::string rel_cfg_path, abs_cfg_path;
     if (argc == 2) {
@@ -58,17 +55,42 @@ int main(int argc, char *argv[])
     YAML::Node robot_node = config["b2z1"];
 
     loma_sim::RaisimEnvironment env(world_node);
-    env.AddRobot(robot_node, ROOT_PATH, 0.0, 0.0);
-    env.InitializeServer();
 
-    
+    std::shared_ptr<loma_sim::Robot> b2z1 = std::make_shared<loma_sim::Robot>(
+        env.getWorld(), robot_node, ROOT_PATH, 0., 0.);
+    env.addRobot(b2z1);
+
+    env.initializeServer();
+
+    Eigen::VectorXd desired_joint_positions(19);
+    desired_joint_positions << 0.0, 0.67, -1.3, 
+                               0.0, 0.67, -1.3,
+                               0.0, 0.67, -1.3,
+                               0.0, 0.67, -1.3,
+                               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+    Eigen::VectorXd desired_joint_velocities(19);
+    desired_joint_velocities << 0.0, 0.0, 0.0, 
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+    Eigen::VectorXd desired_joint_efforts(19);
+    double kp = 400, kd = 5;
 
 
     signal(SIGINT, handleSigint);
 
     while (!sigint)
     {
-        env.Step(true, false);
+        env.updateStates();
+
+        desired_joint_efforts = 
+            kp * (desired_joint_positions - b2z1->getJointPositions()) + 
+            kd * (desired_joint_velocities - b2z1->getJointVelocities());
+
+        b2z1->setJointEfforts(desired_joint_efforts);
+
+        env.step();
         sleep(0.002);
     }
 

@@ -16,15 +16,14 @@
 
 namespace loma_sim {
 
-Robot::Robot(raisim::ArticulatedSystem* articulated_system, 
+Robot::Robot(raisim::World* world, 
              const YAML::Node& robot_node,
-             int robot_id, 
-             double x_init, double y_init) 
-    : articulated_system_(articulated_system),
-      robot_id_(robot_id)
+             const std::string& root_path,
+             double x_init, double y_init)
 {
     // Read parameters from configuration file
     try {
+        YAML::readParameter(robot_node, "urdf_path", urdf_path_);
         YAML::readParameter(robot_node, "fixed_base", fixed_base_);
         YAML::readParameter(robot_node, "base_name", base_name_);
         YAML::readParameter(robot_node, "imu_name", imu_name_);
@@ -37,6 +36,8 @@ Robot::Robot(raisim::ArticulatedSystem* articulated_system,
                   << "Error reading parameter [" << e.what() << "]" 
                   << std::endl;
     }
+
+    articulated_system_ = world->addArticulatedSystem(root_path + urdf_path_);
 
     for (const auto& name : arm_endeff_names_) {
         arm_endeff_index_.push_back(articulated_system_->getBodyIdx(name));
@@ -77,6 +78,78 @@ Robot::Robot(raisim::ArticulatedSystem* articulated_system,
                 nominal_joint_configuration;
     gc_init_[0] = x_init; 
     gc_init_[1] = y_init;
+
+    gv_init_.setZero(gv_dim_);
 }
+
+void Robot::updateStates() 
+{
+    // Get generalized data
+    articulated_system_->getState(gc_, gv_);
+    gf_ = articulated_system_->getGeneralizedForce().e();
+}
+
+void Robot::setJointEfforts(const Eigen::VectorXd& efforts)
+{
+    if (efforts.size() == num_joints_) {
+        Eigen::VectorXd desired_generalized_force(25);
+        desired_generalized_force.setZero();
+        desired_generalized_force.tail(num_joints_) = efforts;
+        articulated_system_->setGeneralizedForce(desired_generalized_force);
+    }
+    else {
+        throw std::runtime_error(
+            "[loma_sim/Robot::setJointEfforts]: \
+            Mismatch between input size and the number of actuated joints");
+    }
+}
+
+Eigen::VectorXd Robot::getJointPositions() const
+{
+    return gc_.tail(num_joints_);;
+}
+
+Eigen::VectorXd Robot::getJointVelocities() const
+{
+    return gv_.tail(num_joints_);;
+}
+
+Eigen::VectorXd Robot::getJointEfforts() const
+{
+    return gf_.tail(num_joints_);
+}
+
+Eigen::Vector3d Robot::getBasePosition() const
+{
+    return gc_.head(3);
+}
+
+Eigen::Matrix3d Robot::getBaseRotation() const
+{
+    Eigen::Quaterniond quat(gc_.segment<4>(3));
+    return quat.toRotationMatrix();
+}
+
+Eigen::Vector4d Robot::getBaseQuaternion() const
+{
+    return gc_.segment<4>(3);
+}
+
+Eigen::Vector3d Robot::getBaseEulerXYZ() const
+{
+    Eigen::Quaterniond quat(gc_.segment<4>(3));
+    return quat.toRotationMatrix().eulerAngles(0, 1, 2);  // xyz
+}
+
+Eigen::Vector3d Robot::getBaseLinearVelocity() const
+{
+    return getBaseRotation().transpose() * gv_.segment<3>(0);
+}
+
+Eigen::Vector3d Robot::getBaseAngularVelocity() const
+{
+    return getBaseRotation().transpose() * gv_.segment<3>(3);
+}
+
 
 }  // namespace loma_sim

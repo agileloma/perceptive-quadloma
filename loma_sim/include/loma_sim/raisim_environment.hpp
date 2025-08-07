@@ -31,18 +31,20 @@ class RaisimEnvironment
 public:
     explicit RaisimEnvironment(const YAML::Node& world_node);
 
+    raisim::World* getWorld() { return world_.get(); }
+
     /**
      * @brief Initializes the Raisim server for visualization.
      * @details Must have added at least one robot before calling. 
      *          Launches the visualizer server.
      */
-    void InitializeServer();
+    void initializeServer();
 
-    void AddRobot(const YAML::Node& robot_node, 
-                  const std::string& root_path,
-                  double x_init = 0., double y_init = 0.);
+    int addRobot(std::shared_ptr<Robot> robot);
 
-    void Step(bool update_states = true, bool sleep = true);
+    void updateStates();
+
+    void step();
 
 private:
     // raisim world object
@@ -52,7 +54,7 @@ private:
     std::unique_ptr<raisim::RaisimServer> server_;
 
     // List of robot objects
-    std::vector<std::unique_ptr<Robot>> robots_;  
+    std::vector<std::shared_ptr<Robot>> robots_;  
 
     // Pointer to current height map
     raisim::HeightMap* height_map_{nullptr};  
